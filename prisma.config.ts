@@ -1,5 +1,5 @@
 import "dotenv/config";
-import { defineConfig, env } from "prisma/config";
+import { defineConfig } from "prisma/config";
 
 export default defineConfig({
   schema: "prisma/schema.prisma",
@@ -9,6 +9,8 @@ export default defineConfig({
   },
   datasource: {
     // Conexão direta (sem pooler) — necessária para o Prisma Migrate/CLI.
-    url: env("DIRECT_URL"),
+    // Cai para DATABASE_URL quando DIRECT_URL não está definida (ex.: build
+    // na Vercel, que só roda `prisma generate` e não precisa de conexão real).
+    url: process.env.DIRECT_URL ?? process.env.DATABASE_URL ?? "",
   },
 });
