@@ -1,0 +1,173 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  ADMIN
+  EMPLOYEE
+}
+
+enum InvoiceStatus {
+  PENDING
+  APPROVED
+  CANCELED
+}
+
+enum MovementType {
+  ENTRADA
+  SAIDA
+  AJUSTE
+}
+
+enum TransactionType {
+  RECEITA
+  DESPESA
+}
+
+enum TransactionStatus {
+  PENDENTE
+  PAGO
+  CANCELADO
+}
+
+model User {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  role         Role     @default(EMPLOYEE)
+  createdAt    DateTime @default(now())
+
+  invoicesCreated        Invoice[]               @relation("InvoiceCreatedBy")
+  stockMovements         StockMovement[]
+  financialTransactions  FinancialTransaction[]
+}
+
+model Product {
+  id          String   @id @default(cuid())
+  sku         String   @unique
+  name        String
+  description String?
+  category    String?
+  imageData   String?  @db.Text
+  unit        String   @default("un")
+  costCents   Int      @default(0)
+  priceCents  Int
+  quantity    Int      @default(0)
+  minStock    Int      @default(0)
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  invoiceItems   InvoiceItem[]
+  stockMovements StockMovement[]
+
+  @@index([name])
+}
+
+model StockMovement {
+  id        String       @id @default(cuid())
+  type      MovementType
+  quantity  Int
+  reason    String?
+  createdAt DateTime     @default(now())
+
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Restrict)
+
+  invoiceId String?
+  invoice   Invoice? @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  @@index([productId])
+  @@index([invoiceId])
+}
+
+model Customer {
+  id        String   @id @default(cuid())
+  name      String
+  phone     String?
+  createdAt DateTime @default(now())
+
+  invoices Invoice[]
+
+  @@index([name])
+}
+
+model Invoice {
+  id            String        @id @default(cuid())
+  number        Int           @unique @default(autoincrement())
+  status        InvoiceStatus @default(PENDING)
+  discountCents Int           @default(0)
+  totalCents    Int           @default(0)
+  notes         String?
+  issuedAt      DateTime      @default(now())
+  approvedAt    DateTime?
+  canceledAt    DateTime?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  customerId String
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Restrict)
+
+  createdById String
+  createdBy   User   @relation("InvoiceCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
+
+  items                 InvoiceItem[]
+  services              InvoiceService[]
+  stockMovements        StockMovement[]
+  financialTransactions FinancialTransaction[]
+}
+
+model InvoiceItem {
+  id             String @id @default(cuid())
+  quantity       Int
+  unitPriceCents Int
+  subtotalCents  Int
+
+  invoiceId String
+  invoice   Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Restrict)
+
+  @@index([invoiceId])
+}
+
+model InvoiceService {
+  id          String @id @default(cuid())
+  description String
+  amountCents Int
+
+  invoiceId String
+  invoice   Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  @@index([invoiceId])
+}
+
+model FinancialTransaction {
+  id          String             @id @default(cuid())
+  type        TransactionType
+  category    String
+  description String
+  amountCents Int
+  status      TransactionStatus @default(PAGO)
+  method      String?
+  date        DateTime           @default(now())
+  createdAt   DateTime           @default(now())
+
+  invoiceId String?
+  invoice   Invoice? @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
+
+  createdById String
+  createdBy   User   @relation(fields: [createdById], references: [id], onDelete: Restrict)
+
+  @@index([date])
+  @@index([type])
+}
