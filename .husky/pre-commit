@@ -1,0 +1,6 @@
+set -e
+
+npm run lint
+npx tsc --noEmit
+npm test
+npm run build

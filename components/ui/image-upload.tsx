@@ -103,3 +103,103 @@ export function ImageUpload({
     </div>
   );
 }
+
+export function MultiImageUpload({
+  name,
+  defaultValue,
+  max = 5,
+}: {
+  name: string;
+  defaultValue?: string[];
+  max?: number;
+}) {
+  const [images, setImages] = useState<string[]>(defaultValue ?? []);
+  const [processing, setProcessing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  async function handleFileChange(e: ChangeEvent<HTMLInputElement>) {
+    const files = Array.from(e.target.files ?? []);
+    if (files.length === 0) return;
+
+    const slotsLeft = max - images.length;
+    setError(slotsLeft < files.length ? `Você só pode adicionar mais ${slotsLeft} foto(s).` : null);
+    if (slotsLeft <= 0) {
+      if (inputRef.current) inputRef.current.value = "";
+      return;
+    }
+
+    setProcessing(true);
+    try {
+      const dataUrls = await Promise.all(
+        files.slice(0, slotsLeft).map((file) => fileToCompressedDataUrl(file))
+      );
+      setImages((prev) => [...prev, ...dataUrls]);
+    } catch (err) {
+      console.error("multi-image-upload:", err);
+      setError("Não foi possível carregar uma das imagens. Tente outra foto.");
+    } finally {
+      setProcessing(false);
+      if (inputRef.current) inputRef.current.value = "";
+    }
+  }
+
+  function handleRemove(index: number) {
+    setImages((prev) => prev.filter((_, i) => i !== index));
+    setError(null);
+  }
+
+  return (
+    <div className="flex flex-col gap-3">
+      <div className="flex flex-wrap gap-3">
+        {images.map((src, index) => (
+          <div
+            key={index}
+            className="relative size-28 shrink-0 overflow-hidden rounded-xl border border-border bg-muted"
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={src} alt={`Foto ${index + 1}`} className="size-full object-cover" />
+            <input type="hidden" name={name} value={src} />
+            <Button
+              type="button"
+              variant="secondary"
+              size="icon-xs"
+              className="absolute top-1 right-1 rounded-full"
+              onClick={() => handleRemove(index)}
+              aria-label={`Remover foto ${index + 1}`}
+            >
+              <X className="size-3.5" />
+            </Button>
+          </div>
+        ))}
+
+        {images.length < max && (
+          <Button
+            type="button"
+            variant="outline"
+            className="size-28 shrink-0 flex-col gap-1 border-dashed"
+            onClick={() => inputRef.current?.click()}
+            disabled={processing}
+          >
+            <Upload className="size-5" />
+            <span className="text-xs">{processing ? "Processando..." : "Adicionar"}</span>
+          </Button>
+        )}
+      </div>
+
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/*"
+        multiple
+        className="hidden"
+        onChange={handleFileChange}
+      />
+
+      <p className="text-xs text-muted-foreground">
+        {images.length}/{max} fotos
+      </p>
+      {error && <p className="text-xs text-destructive">{error}</p>}
+    </div>
+  );
+}

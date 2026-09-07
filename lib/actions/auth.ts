@@ -24,6 +24,7 @@ export async function login(_state: LoginState, formData: FormData): Promise<Log
   }
 
   const { email, password } = validated.data;
+  const rememberMe = formData.get("rememberMe") === "on";
 
   const user = await db.user.findUnique({ where: { email } });
   if (!user) {
@@ -35,8 +36,8 @@ export async function login(_state: LoginState, formData: FormData): Promise<Log
     return { message: "Email ou senha inválidos." };
   }
 
-  await createSession(user.id, user.role);
-  redirect("/dashboard");
+  await createSession(user.id, user.role, rememberMe);
+  redirect(user.role === "ADMIN" ? "/dashboard" : "/dashboard/estoque");
 }
 
 export async function logout() {

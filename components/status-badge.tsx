@@ -44,3 +44,14 @@ export function TransactionStatusBadge({ status }: { status: string }) {
   const config = TRANSACTION_STATUS[status] ?? { label: status, tone: "neutral" as Tone };
   return <StatusPill label={config.label} tone={config.tone} />;
 }
+
+const MOTORCYCLE_STATUS: Record<string, { label: string; tone: Tone }> = {
+  AVAILABLE: { label: "Disponível", tone: "success" },
+  RESERVED: { label: "Reservada", tone: "warning" },
+  SOLD: { label: "Vendida", tone: "neutral" },
+};
+
+export function MotorcycleStatusBadge({ status }: { status: string }) {
+  const config = MOTORCYCLE_STATUS[status] ?? { label: status, tone: "neutral" as Tone };
+  return <StatusPill label={config.label} tone={config.tone} />;
+}

@@ -32,3 +32,15 @@ export function formatDateTime(date: Date): string {
     minute: "2-digit",
   }).format(date);
 }
+
+export function formatRelativeTime(date: Date): string {
+  const diffSec = Math.floor((Date.now() - date.getTime()) / 1000);
+  if (diffSec < 60) return "agora mesmo";
+  const diffMin = Math.floor(diffSec / 60);
+  if (diffMin < 60) return `há ${diffMin} min`;
+  const diffHour = Math.floor(diffMin / 60);
+  if (diffHour < 24) return `há ${diffHour}h`;
+  const diffDay = Math.floor(diffHour / 24);
+  if (diffDay < 30) return `há ${diffDay}d`;
+  return formatDate(date);
+}

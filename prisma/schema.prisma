@@ -34,6 +34,17 @@ enum TransactionStatus {
   CANCELADO
 }
 
+enum MotorcycleStatus {
+  AVAILABLE
+  RESERVED
+  SOLD
+}
+
+enum MotoTransactionType {
+  RECEITA
+  DESPESA
+}
+
 model User {
   id           String   @id @default(cuid())
   name         String
@@ -42,9 +53,10 @@ model User {
   role         Role     @default(EMPLOYEE)
   createdAt    DateTime @default(now())
 
-  invoicesCreated        Invoice[]               @relation("InvoiceCreatedBy")
-  stockMovements         StockMovement[]
-  financialTransactions  FinancialTransaction[]
+  invoicesCreated          Invoice[]               @relation("InvoiceCreatedBy")
+  stockMovements           StockMovement[]
+  financialTransactions    FinancialTransaction[]
+  motoTransactionsCreated  MotoTransaction[]       @relation("MotoTransactionCreatedBy")
 }
 
 model Product {
@@ -53,7 +65,7 @@ model Product {
   name        String
   description String?
   category    String?
-  imageData   String?  @db.Text
+  images      String[] @default([])
   unit        String   @default("un")
   costCents   Int      @default(0)
   priceCents  Int
@@ -170,4 +182,50 @@ model FinancialTransaction {
 
   @@index([date])
   @@index([type])
+}
+
+model Motorcycle {
+  id                String           @id @default(cuid())
+  brand             String
+  model             String
+  year              Int
+  color             String?
+  plate             String?
+  mileage           Int              @default(0)
+  purchaseCostCents Int              @default(0)
+  salePriceCents    Int
+  soldPriceCents    Int?
+  status            MotorcycleStatus @default(AVAILABLE)
+  description       String?          @db.Text
+  images            String[]         @default([])
+  buyerName         String?
+  buyerPhone        String?
+  saleProofImages   String[]         @default([])
+  soldAt            DateTime?
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+
+  transactions MotoTransaction[]
+
+  @@index([status])
+}
+
+model MotoTransaction {
+  id          String              @id @default(cuid())
+  type        MotoTransactionType
+  category    String
+  description String
+  amountCents Int
+  date        DateTime            @default(now())
+  createdAt   DateTime            @default(now())
+
+  motorcycleId String
+  motorcycle   Motorcycle @relation(fields: [motorcycleId], references: [id], onDelete: Cascade)
+
+  createdById String
+  createdBy   User   @relation("MotoTransactionCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
+
+  @@index([date])
+  @@index([type])
+  @@index([motorcycleId])
 }
