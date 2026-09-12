@@ -9,7 +9,7 @@ export async function getProducts({ query, page }: { query?: string; page: numbe
       ? {
           OR: [
             { name: { contains: query, mode: "insensitive" as const } },
-            { category: { contains: query, mode: "insensitive" as const } },
+            { shelf: { contains: query, mode: "insensitive" as const } },
           ],
         }
       : {}),

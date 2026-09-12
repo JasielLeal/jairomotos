@@ -8,6 +8,7 @@ import { InvoiceStatusCard } from "@/app/dashboard/components/invoice-status-car
 import { RecentInvoicesCard } from "@/app/dashboard/components/recent-invoices-card";
 import { TopPerformersCard } from "@/app/dashboard/components/top-performers-card";
 import { LowStockCard } from "@/app/dashboard/components/low-stock-card";
+import { BoletosAlert } from "@/app/dashboard/(pages)/financeiro/(pages)/boletos/components/boletos-alert";
 
 export default async function DashboardOverviewPage() {
   const session = await verifySession();
@@ -29,6 +30,8 @@ export default async function DashboardOverviewPage() {
       </div>
 
       <StatsGrid data={data} />
+
+      <BoletosAlert overdue={data.boletoAlerts.overdue} dueSoon={data.boletoAlerts.dueSoon} />
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <RevenueTrendCard points={data.revenueTrend.points} />

@@ -4,7 +4,7 @@ import { ProductSchema, StockEntrySchema } from "@/app/dashboard/(pages)/estoque
 describe("ProductSchema", () => {
   const validProduct = {
     name: "Óleo 10W40",
-    category: "Óleo e Lubrificantes",
+    shelf: "Prateleira 3",
     costCents: "1000",
     priceCents: "2000",
     quantity: "10",
@@ -21,8 +21,8 @@ describe("ProductSchema", () => {
     expect(result.success).toBe(false);
   });
 
-  it("rejects a category outside the allowed list", () => {
-    const result = ProductSchema.safeParse({ ...validProduct, category: "Inexistente" });
+  it("rejects an empty shelf", () => {
+    const result = ProductSchema.safeParse({ ...validProduct, shelf: "" });
     expect(result.success).toBe(false);
   });
 

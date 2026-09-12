@@ -19,7 +19,7 @@ Guia rápido de como usar o sistema no dia a dia. Cada seção é uma tarefa —
 1. Menu lateral → **Estoque**.
 2. Botão **"Novo produto"** (canto superior direito).
 3. Clique em **"Adicionar"** para tirar/anexar até 5 fotos da peça.
-4. Preencha: Nome, Categoria, Preço de venda, Quantidade inicial e Estoque mínimo.
+4. Preencha: Nome, Prateleira, Preço de venda, Quantidade inicial e Estoque mínimo.
    - *Estoque mínimo* é a partir de quantas unidades o sistema deve avisar que tá acabando.
    - O campo **Custo** só aparece para administradores.
 5. Clique em **"Cadastrar produto"**.
@@ -74,7 +74,7 @@ A nota nasce como **Pendente** — ainda não afeta o estoque nem o financeiro.
 Na página da nota (Notas → clique na nota desejada):
 
 - **"Aprovar nota"** — baixa o estoque das peças usadas e lança o valor total no Financeiro automaticamente. Só pode aprovar uma vez.
-- **"Editar nota"** — só funciona enquanto ela está Pendente.
+- **"Editar nota"** — funciona mesmo depois de aprovada (só não dá pra editar nota cancelada). Ao adicionar, remover ou trocar a quantidade de um item numa nota já aprovada, o estoque e o lançamento no Financeiro são ajustados automaticamente.
 - **"Baixar/Ver PDF"** — gera a nota em PDF pra imprimir ou salvar.
 - **"Enviar por WhatsApp"** — abre o WhatsApp já com a mensagem pronta pro cliente (precisa ter telefone cadastrado).
 - **"Excluir nota"** — apaga a nota. Se ela já tinha sido aprovada, o estoque volta e o lançamento no financeiro é desfeito automaticamente.
@@ -89,13 +89,26 @@ Na página da nota (Notas → clique na nota desejada):
 
 > Vendas de peças/serviço (via Notas aprovadas) e vendas/compras de motos já entram sozinhas — isso aqui é só para o que não passa por essas telas.
 
+## Cadastrar e baixar boletos *(só administradores)*
+
+1. Menu lateral → **Boletos** → botão **"Novo boleto"**.
+2. Escolha o tipo (**A pagar** ou **A receber**), descrição, valor, vencimento e, se quiser, observações.
+3. Clique em **"Cadastrar boleto"**.
+
+Na lista de Boletos, cada um mostra a situação: **Pendente**, **Vence em Xd** (aviso quando o vencimento está a 7 dias ou menos), **Vencido** (atrasado) ou **Pago**. Um aviso de boletos vencidos ou perto de vencer também aparece no topo da Visão Geral e do Financeiro.
+
+- **"Baixar"** — marca o boleto como pago e lança automaticamente a receita/despesa no Financeiro.
+- **"Cancelar"** — cancela um boleto pendente sem lançar nada no Financeiro.
+- **Excluir** — apaga o boleto; se ele já tinha sido baixado, o lançamento gerado no Financeiro também é removido.
+
 ## Acompanhar o financeiro *(só administradores)*
 
-- **Visão Geral** — resumo geral do negócio com gráficos.
+- **Visão Geral** — resumo geral do negócio com gráficos e avisos de boletos a vencer.
 - **Financeiro** — todas as receitas e despesas da loja (peças/serviços).
 - **Financeiro Motos** — só o dinheiro que entra/sai com compra e venda de motos.
+- **Boletos** — boletos a pagar e a receber, com aviso de vencimento próximo.
 
-Funcionários não têm acesso a essas três telas — o menu deles mostra só Estoque, Motos e Notas.
+Funcionários não têm acesso a essas telas — o menu deles mostra só Estoque, Motos e Notas.
 
 ---
 

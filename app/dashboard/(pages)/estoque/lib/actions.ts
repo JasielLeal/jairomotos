@@ -24,7 +24,7 @@ export async function createProduct(
 
   const validated = ProductSchema.safeParse({
     name: formData.get("name"),
-    category: formData.get("category"),
+    shelf: formData.get("shelf"),
     images: formData.getAll("images"),
     // Só administradores definem custo — funcionários não veem nem editam
     // essa informação, então o valor enviado por eles (se houver) é ignorado.
@@ -78,7 +78,7 @@ export async function updateProduct(
 
   const validated = schema.safeParse({
     name: formData.get("name"),
-    category: formData.get("category"),
+    shelf: formData.get("shelf"),
     ...(isAdmin ? { costCents: formData.get("costCents") } : {}),
     priceCents: formData.get("priceCents"),
     minStock: formData.get("minStock"),

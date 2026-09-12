@@ -45,7 +45,7 @@ export function InvoiceActionsCard({
             Cliente sem telefone cadastrado.
           </p>
         )}
-        {invoice.status === "PENDING" && (
+        {invoice.status !== "CANCELED" && (
           <Button
             size="lg"
             variant="outline"

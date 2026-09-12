@@ -1,9 +1,8 @@
 import * as z from "zod";
-import { PRODUCT_CATEGORIES } from "@/app/dashboard/(pages)/estoque/lib/constants";
 
 export const ProductSchema = z.object({
   name: z.string().min(2, { error: "Nome muito curto." }).trim(),
-  category: z.enum(PRODUCT_CATEGORIES, { error: "Selecione uma categoria." }),
+  shelf: z.string().trim().min(1, { error: "Informe a prateleira." }),
   images: z
     .array(z.string().trim())
     .max(5, { error: "Máximo de 5 fotos." })

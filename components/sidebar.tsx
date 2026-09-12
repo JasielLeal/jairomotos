@@ -8,6 +8,7 @@ import {
   Bike,
   FileText,
   Wallet,
+  Receipt,
   UserCog,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -25,6 +26,7 @@ const NAV_ITEMS = [
   },
   { href: "/dashboard/notas", label: "Notas", icon: FileText },
   { href: "/dashboard/financeiro", label: "Financeiro", icon: Wallet, adminOnly: true },
+  { href: "/dashboard/financeiro/boletos", label: "Boletos", icon: Receipt, adminOnly: true },
 ];
 
 export default function Sidebar({ isAdmin }: { isAdmin: boolean }) {

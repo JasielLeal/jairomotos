@@ -3,18 +3,10 @@
 import { useActionState } from "react";
 import { Save } from "lucide-react";
 import { createProduct } from "@/app/dashboard/(pages)/estoque/lib/actions";
-import { PRODUCT_CATEGORIES } from "@/app/dashboard/(pages)/estoque/lib/constants";
 import { Field, CurrencyInput, FormMessage } from "@/components/ui/form";
 import { MultiImageUpload } from "@/components/ui/image-upload";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 
 export default function ProductForm({ isAdmin }: { isAdmin: boolean }) {
   const [state, action, pending] = useActionState(createProduct, undefined);
@@ -27,24 +19,8 @@ export default function ProductForm({ isAdmin }: { isAdmin: boolean }) {
         <Input id="name" name="name" placeholder="Ex: Pastilha de Freio Traseira" required />
       </Field>
 
-      <Field label="Categoria" htmlFor="category" error={state?.errors?.category} required>
-        <Select
-          name="category"
-          defaultValue="Outros"
-          required
-          items={PRODUCT_CATEGORIES.map((c) => ({ label: c, value: c }))}
-        >
-          <SelectTrigger id="category">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {PRODUCT_CATEGORIES.map((category) => (
-              <SelectItem key={category} value={category}>
-                {category}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+      <Field label="Prateleira" htmlFor="shelf" error={state?.errors?.shelf} required>
+        <Input id="shelf" name="shelf" placeholder="Ex: Prateleira 3, Corredor A" required />
       </Field>
 
       <div className={isAdmin ? "grid grid-cols-1 gap-4 sm:grid-cols-2" : undefined}>

@@ -4,17 +4,9 @@ import { useActionState } from "react";
 import type { Product } from "@prisma/client";
 import { Save } from "lucide-react";
 import { updateProduct } from "@/app/dashboard/(pages)/estoque/lib/actions";
-import { PRODUCT_CATEGORIES } from "@/app/dashboard/(pages)/estoque/lib/constants";
 import { Field, CurrencyInput, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 
 export default function EditProductForm({
   product,
@@ -26,34 +18,14 @@ export default function EditProductForm({
   const action = updateProduct.bind(null, product.id);
   const [state, formAction, pending] = useActionState(action, undefined);
 
-  const initialCategory = PRODUCT_CATEGORIES.includes(product.category as never)
-    ? product.category!
-    : "Outros";
-
   return (
     <form action={formAction} className="flex flex-col gap-4">
       <Field label="Nome" htmlFor="name" error={state?.errors?.name} required>
         <Input id="name" name="name" defaultValue={product.name} required />
       </Field>
 
-      <Field label="Categoria" htmlFor="category" error={state?.errors?.category} required>
-        <Select
-          name="category"
-          defaultValue={initialCategory}
-          required
-          items={PRODUCT_CATEGORIES.map((c) => ({ label: c, value: c }))}
-        >
-          <SelectTrigger id="category">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {PRODUCT_CATEGORIES.map((category) => (
-              <SelectItem key={category} value={category}>
-                {category}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+      <Field label="Prateleira" htmlFor="shelf" error={state?.errors?.shelf} required>
+        <Input id="shelf" name="shelf" defaultValue={product.shelf ?? ""} placeholder="Ex: Prateleira 3, Corredor A" required />
       </Field>
 
       <div className={isAdmin ? "grid grid-cols-1 gap-4 sm:grid-cols-2" : undefined}>

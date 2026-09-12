@@ -117,15 +117,19 @@ export async function updateInvoice(
   _state: InvoiceFormState,
   formData: FormData
 ): Promise<InvoiceFormState> {
-  await verifySession();
+  const session = await verifySession();
 
-  const invoice = await db.invoice.findUnique({ where: { id: invoiceId } });
+  const invoice = await db.invoice.findUnique({
+    where: { id: invoiceId },
+    include: { items: true },
+  });
   if (!invoice) {
     return { message: "Nota não encontrada." };
   }
-  if (invoice.status !== "PENDING") {
-    return { message: "Só é possível editar notas pendentes." };
+  if (invoice.status === "CANCELED") {
+    return { message: "Não é possível editar uma nota cancelada." };
   }
+  const wasApproved = invoice.status === "APPROVED";
 
   const productIds = formData.getAll("productId");
   const quantities = formData.getAll("quantity");
@@ -189,23 +193,90 @@ export async function updateInvoice(
 
   const totalCents = subtotalCents - discountCents;
 
-  await db.$transaction(async (tx) => {
-    await tx.invoiceItem.deleteMany({ where: { invoiceId } });
-    await tx.invoiceService.deleteMany({ where: { invoiceId } });
-    await tx.invoice.update({
-      where: { id: invoiceId },
-      data: {
-        notes,
-        discountCents,
-        totalCents,
-        items: { create: itemsWithSubtotal },
-        services: { create: validServices },
-      },
+  try {
+    await db.$transaction(async (tx) => {
+      if (wasApproved) {
+        // The old items already left the shelf when the note was approved —
+        // put them back before checking whether the new items fit in stock.
+        for (const oldItem of invoice.items) {
+          await tx.product.update({
+            where: { id: oldItem.productId },
+            data: { quantity: { increment: oldItem.quantity } },
+          });
+          await tx.stockMovement.create({
+            data: {
+              productId: oldItem.productId,
+              type: "AJUSTE",
+              quantity: oldItem.quantity,
+              reason: `Estorno - Edição da Nota #${invoice.number}`,
+              userId: session.userId,
+            },
+          });
+        }
+
+        const freshProducts = await tx.product.findMany({
+          where: { id: { in: itemsWithSubtotal.map((i) => i.productId) } },
+        });
+        const freshMap = new Map(freshProducts.map((p) => [p.id, p]));
+
+        for (const item of itemsWithSubtotal) {
+          const fresh = freshMap.get(item.productId);
+          if (!fresh || fresh.quantity < item.quantity) {
+            throw new Error(
+              `Estoque insuficiente para "${fresh?.name ?? "produto"}": há apenas ${fresh?.quantity ?? 0} unidade(s).`
+            );
+          }
+        }
+
+        for (const item of itemsWithSubtotal) {
+          await tx.product.update({
+            where: { id: item.productId },
+            data: { quantity: { decrement: item.quantity } },
+          });
+          await tx.stockMovement.create({
+            data: {
+              productId: item.productId,
+              type: "SAIDA",
+              quantity: item.quantity,
+              reason: `Venda - Edição da Nota #${invoice.number}`,
+              invoiceId: invoice.id,
+              userId: session.userId,
+            },
+          });
+        }
+      }
+
+      await tx.invoiceItem.deleteMany({ where: { invoiceId } });
+      await tx.invoiceService.deleteMany({ where: { invoiceId } });
+      await tx.invoice.update({
+        where: { id: invoiceId },
+        data: {
+          notes,
+          discountCents,
+          totalCents,
+          items: { create: itemsWithSubtotal },
+          services: { create: validServices },
+        },
+      });
+
+      if (wasApproved) {
+        await tx.financialTransaction.updateMany({
+          where: { invoiceId },
+          data: { amountCents: totalCents },
+        });
+      }
     });
-  });
+  } catch (error) {
+    return {
+      message: error instanceof Error ? error.message : "Erro ao salvar as alterações.",
+    };
+  }
 
   revalidatePath("/dashboard/notas");
   revalidatePath(`/dashboard/notas/${invoiceId}`);
+  revalidatePath("/dashboard/estoque");
+  revalidatePath("/dashboard/financeiro");
+  revalidatePath("/dashboard");
   redirect(`/dashboard/notas/${invoiceId}`);
 }
 

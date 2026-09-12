@@ -22,7 +22,7 @@ Tela inicial do painel, com um resumo do negócio: gráficos e números de fatur
 Cadastro de todas as peças e produtos vendidos/usados na loja:
 
 - Cada peça pode ter **até 5 fotos**.
-- Nome, categoria, custo, preço de venda e quantidade em estoque.
+- Nome, prateleira (onde a peça fica guardada), custo, preço de venda e quantidade em estoque.
 - Um **estoque mínimo** configurável: quando a quantidade fica igual ou abaixo dele, o sistema avisa visualmente que está acabando.
 - Histórico de **movimentações** de estoque (entrada, saída, ajuste), sempre com data e quem fez.
 - Edição de dados e das fotos a qualquer momento.
@@ -57,17 +57,27 @@ Controle financeiro **separado**, só do negócio de compra e venda de motos:
 - Permite aplicar desconto.
 - Enquanto a nota está **pendente**, pode ser editada livremente.
 - Ao **aprovar** a nota: o estoque das peças usadas é baixado automaticamente e o valor total entra no financeiro geral da loja — sem precisar fazer isso à mão.
+- Mesmo depois de aprovada, a nota continua editável: dá pra adicionar, remover ou trocar a quantidade de itens e serviços, e o estoque e o lançamento no financeiro se ajustam sozinhos para refletir a mudança.
 - Se a nota for excluída depois de aprovada, o estoque é devolvido automaticamente (estorno), evitando erro de contagem.
 
 ## 6. Financeiro Geral
 
 Controle de receitas e despesas da loja como um todo (diferente do financeiro específico das motos): tudo que entra e sai, com categoria, descrição, valor, forma de pagamento e data.
 
-## 7. Usuários (somente Administradores)
+## 7. Boletos
+
+Controle de boletos a pagar (fornecedores, contas) e a receber, separado dos lançamentos manuais do Financeiro:
+
+- Cada boleto tem descrição, tipo (a pagar/a receber), valor e data de vencimento.
+- A lista mostra a situação de cada um: pendente, vencendo em breve (aviso a partir de 7 dias antes), vencido ou pago.
+- Um aviso de boletos vencidos ou perto do vencimento aparece também na Visão Geral e no Financeiro, para não passar batido.
+- Ao **baixar** um boleto, ele lança automaticamente a receita/despesa correspondente no Financeiro.
+
+## 8. Usuários (somente Administradores)
 
 Área restrita para administradores criarem novos acessos de funcionários ou outros administradores, e verem a lista da equipe com acesso ao sistema.
 
-## 8. Vitrine Pública de Motos (site)
+## 9. Vitrine Pública de Motos (site)
 
 Uma página pública (sem precisar de login) que mostra automaticamente todas as motos com status **Disponível**, com fotos, ano, quilometragem, cor e preço. Cada moto tem um botão **"Tenho interesse"** que abre o WhatsApp da loja com uma mensagem já pronta, puxando o modelo e o preço da moto — o cliente só precisa mandar. Motos vendidas ou reservadas não aparecem nessa vitrine.
 
@@ -83,5 +93,6 @@ Uma página pública (sem precisar de login) que mostra automaticamente todas as
 | Financeiro Motos | Dinheiro que entra/sai só com motos |
 | Notas | Orçamentos/vendas de peças e serviços para clientes |
 | Financeiro | Dinheiro que entra/sai da loja em geral |
+| Boletos | Boletos a pagar e a receber, com aviso de vencimento |
 | Usuários | Quem tem acesso ao sistema (só admin) |
 | Site público | Vitrine de motos disponíveis, com contato via WhatsApp |

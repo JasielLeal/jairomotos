@@ -8,6 +8,8 @@ import { FinanceStats } from "@/app/dashboard/(pages)/financeiro/components/fina
 import { FinanceFilters } from "@/app/dashboard/(pages)/financeiro/components/finance-filters";
 import { TransactionsTable } from "@/app/dashboard/(pages)/financeiro/components/transactions-table";
 import { getTransactions, type TransactionTypeFilter } from "@/app/dashboard/(pages)/financeiro/lib/get-transactions";
+import { BoletosAlert } from "@/app/dashboard/(pages)/financeiro/(pages)/boletos/components/boletos-alert";
+import { getBoletoAlerts } from "@/app/dashboard/(pages)/financeiro/(pages)/boletos/lib/get-boletos";
 
 export default async function FinancePage({
   searchParams,
@@ -25,11 +27,10 @@ export default async function FinancePage({
   const page = Math.max(1, Number(pageParam) || 1);
   const query = q?.trim();
 
-  const { transactions, totalPages, revenue, expense } = await getTransactions({
-    typeFilter,
-    query,
-    page,
-  });
+  const [{ transactions, totalPages, revenue, expense }, boletoAlerts] = await Promise.all([
+    getTransactions({ typeFilter, query, page }),
+    getBoletoAlerts(),
+  ]);
 
   return (
     <div className="flex flex-col gap-6">
@@ -42,6 +43,8 @@ export default async function FinancePage({
           icon: <Plus className="size-4" />,
         }}
       />
+
+      <BoletosAlert overdue={boletoAlerts.overdue} dueSoon={boletoAlerts.dueSoon} />
 
       <FinanceStats revenue={revenue} expense={expense} />
 

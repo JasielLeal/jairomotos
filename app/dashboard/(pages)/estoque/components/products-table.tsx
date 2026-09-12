@@ -33,7 +33,7 @@ export function ProductsTable({
             <TableRow>
               <TableHead className="w-14"></TableHead>
               <TableHead>Nome</TableHead>
-              <TableHead>Categoria</TableHead>
+              <TableHead>Prateleira</TableHead>
               {isAdmin && <TableHead className="text-right">Custo</TableHead>}
               <TableHead className="text-right">Preço</TableHead>
               <TableHead className="text-right">Estoque</TableHead>
@@ -67,7 +67,7 @@ export function ProductsTable({
                     </Link>
                   </TableCell>
                   <TableCell className="text-muted-foreground">
-                    {product.category || "—"}
+                    {product.shelf || "—"}
                   </TableCell>
                   {isAdmin && (
                     <TableCell className="text-right text-muted-foreground tabular-nums">

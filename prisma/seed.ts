@@ -33,7 +33,7 @@ async function main() {
         {
           sku: "OL-5W30",
           name: "Óleo Motor 5W30 1L",
-          category: "Óleo e Lubrificantes",
+          shelf: "Prateleira 1",
           unit: "un",
           costCents: 1800,
           priceCents: 3200,
@@ -43,7 +43,7 @@ async function main() {
         {
           sku: "PN-TRAS",
           name: "Pastilha de Freio Traseira",
-          category: "Freios",
+          shelf: "Prateleira 2",
           unit: "par",
           costCents: 3500,
           priceCents: 6900,
@@ -53,7 +53,7 @@ async function main() {
         {
           sku: "PNEU-100",
           name: "Pneu Traseiro 100/90-18",
-          category: "Pneus e Câmaras",
+          shelf: "Prateleira 3",
           unit: "un",
           costCents: 12000,
           priceCents: 19900,

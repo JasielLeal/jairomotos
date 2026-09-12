@@ -21,19 +21,35 @@ export default async function EditInvoicePage({
   });
 
   if (!invoice) notFound();
-  if (invoice.status !== "PENDING") redirect(`/dashboard/notas/${id}`);
+  if (invoice.status === "CANCELED") redirect(`/dashboard/notas/${id}`);
 
-  const products = await db.product.findMany({
-    where: { active: true, quantity: { gt: 0 } },
+  // An approved note already took its items off the shelf, so the true
+  // "available to sell" amount for those products is what's left in stock
+  // plus whatever this note is currently holding.
+  const reservedByProduct =
+    invoice.status === "APPROVED"
+      ? new Map(invoice.items.map((item) => [item.productId, item.quantity]))
+      : new Map<string, number>();
+
+  const activeProducts = await db.product.findMany({
+    where: { active: true },
     orderBy: { name: "asc" },
     select: { id: true, name: true, priceCents: true, quantity: true, unit: true, images: true },
   });
+
+  const products = activeProducts
+    .map((p) => ({ ...p, quantity: p.quantity + (reservedByProduct.get(p.id) ?? 0) }))
+    .filter((p) => p.quantity > 0);
 
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
         title={`Editar nota #${invoice.number}`}
-        description="Altere os itens, serviços ou o desconto enquanto a nota estiver pendente."
+        description={
+          invoice.status === "APPROVED"
+            ? "Adicione ou remova itens e serviços. O estoque e o financeiro são ajustados automaticamente."
+            : "Altere os itens, serviços ou o desconto enquanto a nota estiver pendente."
+        }
       />
       <Card className="max-w-3xl">
         <CardContent>

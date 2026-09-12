@@ -57,6 +57,7 @@ model User {
   stockMovements           StockMovement[]
   financialTransactions    FinancialTransaction[]
   motoTransactionsCreated  MotoTransaction[]       @relation("MotoTransactionCreatedBy")
+  boletosCreated           Boleto[]                @relation("BoletoCreatedBy")
 }
 
 model Product {
@@ -64,7 +65,7 @@ model Product {
   sku         String   @unique
   name        String
   description String?
-  category    String?
+  shelf       String?
   images      String[] @default([])
   unit        String   @default("un")
   costCents   Int      @default(0)
@@ -180,8 +181,31 @@ model FinancialTransaction {
   createdById String
   createdBy   User   @relation(fields: [createdById], references: [id], onDelete: Restrict)
 
+  boleto Boleto?
+
   @@index([date])
   @@index([type])
+}
+
+model Boleto {
+  id          String            @id @default(cuid())
+  description String
+  type        TransactionType
+  amountCents Int
+  dueDate     DateTime
+  status      TransactionStatus @default(PENDENTE)
+  paidAt      DateTime?
+  notes       String?
+  createdAt   DateTime          @default(now())
+
+  financialTransactionId String?               @unique
+  financialTransaction   FinancialTransaction? @relation(fields: [financialTransactionId], references: [id], onDelete: SetNull)
+
+  createdById String
+  createdBy   User   @relation("BoletoCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
+
+  @@index([dueDate])
+  @@index([status])
 }
 
 model Motorcycle {

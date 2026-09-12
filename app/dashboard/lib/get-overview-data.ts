@@ -1,6 +1,7 @@
 import "server-only";
 import { db } from "@/lib/db";
 import { monthBuckets, pctChange, sumByType } from "./utils";
+import { getBoletoAlerts } from "@/app/dashboard/(pages)/financeiro/(pages)/boletos/lib/get-boletos";
 import type { RevenueTrendPoint } from "./types";
 
 export async function getOverviewData() {
@@ -22,6 +23,7 @@ export async function getOverviewData() {
     invoiceStatusGroups,
     topCreators,
     invoiceTotals,
+    boletoAlerts,
   ] = await Promise.all([
     db.product.count({ where: { active: true } }),
     db.product.findMany({ where: { active: true }, orderBy: { quantity: "asc" } }),
@@ -47,6 +49,7 @@ export async function getOverviewData() {
       take: 5,
     }),
     db.invoice.aggregate({ _sum: { totalCents: true } }),
+    getBoletoAlerts(),
   ]);
 
   const lowStockProducts = activeProducts.filter((p) => p.quantity <= p.minStock).slice(0, 5);
@@ -106,6 +109,7 @@ export async function getOverviewData() {
     totalInvoices,
     totalInvoicedCents: invoiceTotals._sum.totalCents ?? 0,
     topPerformers,
+    boletoAlerts,
   };
 }
 
