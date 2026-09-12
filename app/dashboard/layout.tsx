@@ -13,7 +13,7 @@ export default async function DashboardLayout({ children }: LayoutProps<"/dashbo
       <aside className="flex w-64 shrink-0 flex-col border-r border-sidebar-border bg-sidebar">
         <div className="flex items-center border-b border-sidebar-border px-4 py-3">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logo.png" alt="Jairo Motos" className="h-15 w-35 rounded-md"  width={200}/>
+          <img src="/logo.png" alt="Jairo Motos" className="h-12 w-auto max-w-none" />
         </div>
         <div className="flex-1 overflow-y-auto">
           <Sidebar isAdmin={user.role === "ADMIN"} />

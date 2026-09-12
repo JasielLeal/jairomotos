@@ -52,6 +52,8 @@ export async function markBoletoPaid(boletoId: string) {
     return { success: false, message: "Apenas administradores podem baixar boletos." };
   }
 
+  let invoiceId: string | null = null;
+
   try {
     await db.$transaction(async (tx) => {
       const boleto = await tx.boleto.findUnique({ where: { id: boletoId } });
@@ -67,6 +69,7 @@ export async function markBoletoPaid(boletoId: string) {
           description: boleto.description,
           amountCents: boleto.amountCents,
           status: "PAGO",
+          invoiceId: boleto.invoiceId,
           createdById: session.userId,
         },
       });
@@ -75,6 +78,17 @@ export async function markBoletoPaid(boletoId: string) {
         where: { id: boletoId },
         data: { status: "PAGO", paidAt: new Date(), financialTransactionId: transaction.id },
       });
+
+      if (boleto.invoiceId) {
+        invoiceId = boleto.invoiceId;
+        const invoice = await tx.invoice.findUnique({ where: { id: boleto.invoiceId } });
+        if (invoice?.status === "PARTIAL") {
+          await tx.invoice.update({
+            where: { id: boleto.invoiceId },
+            data: { status: "APPROVED", paidCents: invoice.totalCents },
+          });
+        }
+      }
     });
   } catch (error) {
     return {
@@ -85,6 +99,8 @@ export async function markBoletoPaid(boletoId: string) {
 
   revalidatePath("/dashboard/financeiro/boletos");
   revalidatePath("/dashboard/financeiro");
+  revalidatePath("/dashboard/notas");
+  if (invoiceId) revalidatePath(`/dashboard/notas/${invoiceId}`);
   revalidatePath("/dashboard");
   return { success: true, message: "Boleto baixado. Lançamento criado no financeiro." };
 }
@@ -111,6 +127,7 @@ export async function cancelBoleto(boletoId: string) {
   }
 
   revalidatePath("/dashboard/financeiro/boletos");
+  revalidatePath("/dashboard/notas");
   revalidatePath("/dashboard");
   return { success: true, message: "Boleto cancelado." };
 }
@@ -141,6 +158,7 @@ export async function deleteBoleto(boletoId: string) {
 
   revalidatePath("/dashboard/financeiro/boletos");
   revalidatePath("/dashboard/financeiro");
+  revalidatePath("/dashboard/notas");
   revalidatePath("/dashboard");
   return { success: true, message: "Boleto excluído." };
 }

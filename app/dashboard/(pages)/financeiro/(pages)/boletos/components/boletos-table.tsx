@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { formatCentsToBRL, formatDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { EmptyState } from "@/components/empty-state";
@@ -53,7 +54,17 @@ export function BoletosTable({ boletos }: { boletos: Boleto[] }) {
               return (
                 <TableRow key={boleto.id}>
                   <TableCell className="text-muted-foreground">{formatDate(boleto.dueDate)}</TableCell>
-                  <TableCell className="text-foreground">{boleto.description}</TableCell>
+                  <TableCell className="text-foreground">
+                    {boleto.description}
+                    {boleto.invoice && (
+                      <Link
+                        href={`/dashboard/notas/${boleto.invoiceId}`}
+                        className="ml-2 text-xs text-muted-foreground hover:underline"
+                      >
+                        nota #{boleto.invoice.number}
+                      </Link>
+                    )}
+                  </TableCell>
                   <TableCell>
                     <StatusPill label={urgency.label} tone={urgency.tone} />
                   </TableCell>

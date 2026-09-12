@@ -1,12 +1,14 @@
 export const INVOICE_STATUS_LABEL: Record<string, string> = {
   PENDING: "Pendente",
   APPROVED: "Aprovada",
+  PARTIAL: "Parcial",
   CANCELED: "Cancelada",
 };
 
 export const INVOICE_STATUS_BAR: Record<string, string> = {
   PENDING: "bg-amber-500",
   APPROVED: "bg-emerald-500",
+  PARTIAL: "bg-blue-500",
   CANCELED: "bg-muted-foreground/40",
 };
 

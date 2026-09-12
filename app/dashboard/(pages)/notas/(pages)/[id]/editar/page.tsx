@@ -21,7 +21,9 @@ export default async function EditInvoicePage({
   });
 
   if (!invoice) notFound();
-  if (invoice.status === "CANCELED") redirect(`/dashboard/notas/${id}`);
+  if (invoice.status === "CANCELED" || invoice.status === "PARTIAL") {
+    redirect(`/dashboard/notas/${id}`);
+  }
 
   // An approved note already took its items off the shelf, so the true
   // "available to sell" amount for those products is what's left in stock

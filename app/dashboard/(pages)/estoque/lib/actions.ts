@@ -4,6 +4,8 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import { verifySession } from "@/lib/dal";
+import { syncImages } from "@/lib/cloudinary";
+import { MAX_IMAGES } from "@/lib/validations/image";
 import {
   ProductSchema,
   ProductFormState,
@@ -38,7 +40,15 @@ export async function createProduct(
     return { errors: validated.error.flatten().fieldErrors };
   }
 
-  const data = { ...validated.data, sku: generateSku(), unit: "un" };
+  let images: string[];
+  try {
+    images = await syncImages({ previous: [], incoming: validated.data.images, folder: "products" });
+  } catch (error) {
+    console.error("createProduct:images", error);
+    return { message: "Erro ao enviar as fotos. Tente novamente." };
+  }
+
+  const data = { ...validated.data, images, sku: generateSku(), unit: "un" };
 
   const product = await db.$transaction(async (tx) => {
     const created = await tx.product.create({ data });
@@ -105,10 +115,23 @@ export async function updateProductImages(
 ): Promise<ProductFormState> {
   await verifySession();
 
-  const images = formData
+  const incoming = formData
     .getAll("images")
-    .filter((v): v is string => typeof v === "string" && v.startsWith("data:image/"))
-    .slice(0, 5);
+    .filter((v): v is string => typeof v === "string")
+    .slice(0, MAX_IMAGES);
+
+  const product = await db.product.findUnique({ where: { id: productId }, select: { images: true } });
+  if (!product) {
+    return { message: "Produto não encontrado." };
+  }
+
+  let images: string[];
+  try {
+    images = await syncImages({ previous: product.images, incoming, folder: "products" });
+  } catch (error) {
+    console.error("updateProductImages:images", error);
+    return { message: "Erro ao enviar as fotos. Tente novamente." };
+  }
 
   await db.product.update({ where: { id: productId }, data: { images } });
 

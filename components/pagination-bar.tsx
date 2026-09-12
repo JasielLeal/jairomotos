@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
-export const PAGE_SIZE = 20;
+export const PAGE_SIZE = 10;
 
 export function PaginationBar({
   currentPage,

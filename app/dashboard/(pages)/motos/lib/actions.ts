@@ -4,6 +4,8 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import { verifySession } from "@/lib/dal";
+import { syncImages, deleteImage } from "@/lib/cloudinary";
+import { MAX_IMAGES } from "@/lib/validations/image";
 import {
   MotorcycleSchema,
   MotorcycleFormState,
@@ -35,10 +37,18 @@ export async function createMotorcycle(
     return { errors: validated.error.flatten().fieldErrors };
   }
 
+  let images: string[];
+  try {
+    images = await syncImages({ previous: [], incoming: validated.data.images, folder: "motorcycles" });
+  } catch (error) {
+    console.error("createMotorcycle:images", error);
+    return { message: "Erro ao enviar as fotos. Tente novamente." };
+  }
+
   const { purchaseCostCents, ...data } = validated.data;
 
   const motorcycle = await db.$transaction(async (tx) => {
-    const created = await tx.motorcycle.create({ data: { ...data, purchaseCostCents } });
+    const created = await tx.motorcycle.create({ data: { ...data, images, purchaseCostCents } });
 
     if (purchaseCostCents > 0) {
       await tx.motoTransaction.create({
@@ -99,10 +109,26 @@ export async function updateMotorcycleImages(
 ): Promise<MotorcycleFormState> {
   await verifySession();
 
-  const images = formData
+  const incoming = formData
     .getAll("images")
-    .filter((v): v is string => typeof v === "string" && v.startsWith("data:image/"))
-    .slice(0, 5);
+    .filter((v): v is string => typeof v === "string")
+    .slice(0, MAX_IMAGES);
+
+  const motorcycle = await db.motorcycle.findUnique({
+    where: { id: motorcycleId },
+    select: { images: true },
+  });
+  if (!motorcycle) {
+    return { message: "Moto não encontrada." };
+  }
+
+  let images: string[];
+  try {
+    images = await syncImages({ previous: motorcycle.images, incoming, folder: "motorcycles" });
+  } catch (error) {
+    console.error("updateMotorcycleImages:images", error);
+    return { message: "Erro ao enviar as fotos. Tente novamente." };
+  }
 
   await db.motorcycle.update({ where: { id: motorcycleId }, data: { images } });
 
@@ -140,6 +166,18 @@ export async function sellMotorcycle(
     return { errors: validated.error.flatten().fieldErrors };
   }
 
+  let saleProofImages: string[];
+  try {
+    saleProofImages = await syncImages({
+      previous: [],
+      incoming: validated.data.saleProofImages,
+      folder: "motorcycles/sale-proof",
+    });
+  } catch (error) {
+    console.error("sellMotorcycle:images", error);
+    return { message: "Erro ao enviar as fotos do comprovante. Tente novamente." };
+  }
+
   try {
     await db.$transaction(async (tx) => {
       const motorcycle = await tx.motorcycle.findUnique({ where: { id: motorcycleId } });
@@ -153,7 +191,7 @@ export async function sellMotorcycle(
           soldPriceCents: validated.data.soldPriceCents,
           buyerName: validated.data.buyerName,
           buyerPhone: validated.data.buyerPhone || null,
-          saleProofImages: validated.data.saleProofImages,
+          saleProofImages,
           soldAt: new Date(),
         },
       });
@@ -217,8 +255,19 @@ export async function deleteMotorcycle(motorcycleId: string) {
   await verifySession();
 
   try {
+    const motorcycle = await db.motorcycle.findUnique({
+      where: { id: motorcycleId },
+      select: { images: true, saleProofImages: true },
+    });
+
     // MotoTransactions cascade-delete with the motorcycle.
     await db.motorcycle.delete({ where: { id: motorcycleId } });
+
+    if (motorcycle) {
+      await Promise.all(
+        [...motorcycle.images, ...motorcycle.saleProofImages].map((url) => deleteImage(url))
+      );
+    }
   } catch {
     return { success: false, message: "Erro ao excluir a moto." };
   }

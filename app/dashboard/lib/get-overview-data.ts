@@ -71,7 +71,7 @@ export async function getOverviewData() {
   });
 
   const totalInvoices = invoiceStatusGroups.reduce((sum, g) => sum + g._count._all, 0);
-  const invoiceStatusBreakdown = ["PENDING", "APPROVED", "CANCELED"].map((status) => {
+  const invoiceStatusBreakdown = ["PENDING", "PARTIAL", "APPROVED", "CANCELED"].map((status) => {
     const group = invoiceStatusGroups.find((g) => g.status === status);
     const count = group?._count._all ?? 0;
     return {

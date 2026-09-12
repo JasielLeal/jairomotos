@@ -8,6 +8,8 @@ import {
   CreateInvoiceSchema,
   UpdateInvoiceSchema,
   InvoiceFormState,
+  PartialPaymentSchema,
+  PartialPaymentFormState,
 } from "@/app/dashboard/(pages)/notas/lib/validations";
 
 export async function createInvoice(
@@ -128,6 +130,9 @@ export async function updateInvoice(
   }
   if (invoice.status === "CANCELED") {
     return { message: "Não é possível editar uma nota cancelada." };
+  }
+  if (invoice.status === "PARTIAL") {
+    return { message: "Não é possível editar uma nota com pagamento parcial registrado." };
   }
   const wasApproved = invoice.status === "APPROVED";
 
@@ -353,6 +358,108 @@ export async function approveInvoice(invoiceId: string) {
   return { success: true, message: "Nota aprovada. Estoque e financeiro atualizados." };
 }
 
+export async function approveInvoicePartial(
+  invoiceId: string,
+  _state: PartialPaymentFormState,
+  formData: FormData
+): Promise<PartialPaymentFormState> {
+  const session = await verifySession();
+
+  const validated = PartialPaymentSchema.safeParse({
+    paidCents: formData.get("paidCents"),
+    remainingDueDate: formData.get("remainingDueDate"),
+  });
+
+  if (!validated.success) {
+    return { errors: validated.error.flatten().fieldErrors };
+  }
+
+  const { paidCents, remainingDueDate } = validated.data;
+
+  try {
+    await db.$transaction(async (tx) => {
+      const invoice = await tx.invoice.findUnique({
+        where: { id: invoiceId },
+        include: { items: { include: { product: true } } },
+      });
+
+      if (!invoice) throw new Error("Nota não encontrada.");
+      if (invoice.status !== "PENDING") {
+        throw new Error("Esta nota já foi aprovada ou cancelada.");
+      }
+      if (paidCents >= invoice.totalCents) {
+        throw new Error('A entrada não pode ser maior ou igual ao total da nota. Use "Aprovar nota".');
+      }
+
+      for (const item of invoice.items) {
+        if (item.product.quantity < item.quantity) {
+          throw new Error(
+            `Estoque insuficiente para "${item.product.name}": há apenas ${item.product.quantity} unidade(s).`
+          );
+        }
+      }
+
+      for (const item of invoice.items) {
+        await tx.product.update({
+          where: { id: item.productId },
+          data: { quantity: { decrement: item.quantity } },
+        });
+
+        await tx.stockMovement.create({
+          data: {
+            productId: item.productId,
+            type: "SAIDA",
+            quantity: item.quantity,
+            reason: `Venda - Nota #${invoice.number}`,
+            invoiceId: invoice.id,
+            userId: session.userId,
+          },
+        });
+      }
+
+      await tx.financialTransaction.create({
+        data: {
+          type: "RECEITA",
+          category: "Venda",
+          description: `Nota #${invoice.number} - entrada`,
+          amountCents: paidCents,
+          status: "PAGO",
+          invoiceId: invoice.id,
+          createdById: session.userId,
+        },
+      });
+
+      await tx.boleto.create({
+        data: {
+          description: `Nota #${invoice.number} - restante`,
+          type: "RECEITA",
+          amountCents: invoice.totalCents - paidCents,
+          dueDate: new Date(remainingDueDate),
+          invoiceId: invoice.id,
+          createdById: session.userId,
+        },
+      });
+
+      await tx.invoice.update({
+        where: { id: invoiceId },
+        data: { status: "PARTIAL", paidCents, approvedAt: new Date() },
+      });
+    });
+  } catch (error) {
+    return {
+      message: error instanceof Error ? error.message : "Erro ao registrar a entrada.",
+    };
+  }
+
+  revalidatePath("/dashboard/notas");
+  revalidatePath(`/dashboard/notas/${invoiceId}`);
+  revalidatePath("/dashboard/estoque");
+  revalidatePath("/dashboard/financeiro");
+  revalidatePath("/dashboard/financeiro/boletos");
+  revalidatePath("/dashboard");
+  return { success: true, message: "Entrada registrada. O restante virou um boleto a receber." };
+}
+
 export async function deleteInvoice(invoiceId: string) {
   const session = await verifySession();
 
@@ -365,7 +472,7 @@ export async function deleteInvoice(invoiceId: string) {
 
       if (!invoice) throw new Error("Nota não encontrada.");
 
-      if (invoice.status === "APPROVED") {
+      if (invoice.status === "APPROVED" || invoice.status === "PARTIAL") {
         for (const item of invoice.items) {
           await tx.product.update({
             where: { id: item.productId },
@@ -386,6 +493,16 @@ export async function deleteInvoice(invoiceId: string) {
         await tx.financialTransaction.deleteMany({ where: { invoiceId: invoice.id } });
       }
 
+      // A partial approval creates a boleto for the remaining balance —
+      // it doesn't make sense to keep that receivable once the sale itself is gone.
+      const remainderBoletos = await tx.boleto.findMany({ where: { invoiceId: invoice.id } });
+      for (const boleto of remainderBoletos) {
+        if (boleto.financialTransactionId) {
+          await tx.financialTransaction.delete({ where: { id: boleto.financialTransactionId } });
+        }
+      }
+      await tx.boleto.deleteMany({ where: { invoiceId: invoice.id } });
+
       // InvoiceItem/InvoiceService cascade-delete with the invoice.
       // Past StockMovements that reference this invoice keep their record,
       // losing only the direct link (invoiceId is set to null).
@@ -401,6 +518,7 @@ export async function deleteInvoice(invoiceId: string) {
   revalidatePath("/dashboard/notas");
   revalidatePath("/dashboard/estoque");
   revalidatePath("/dashboard/financeiro");
+  revalidatePath("/dashboard/financeiro/boletos");
   revalidatePath("/dashboard");
   redirect("/dashboard/notas");
 }

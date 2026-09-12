@@ -26,6 +26,7 @@ export function StatusPill({ label, tone }: { label: string; tone: Tone }) {
 const INVOICE_STATUS: Record<string, { label: string; tone: Tone }> = {
   PENDING: { label: "Pendente", tone: "warning" },
   APPROVED: { label: "Aprovada", tone: "success" },
+  PARTIAL: { label: "Parcial", tone: "info" },
   CANCELED: { label: "Cancelada", tone: "neutral" },
 };
 

@@ -3,6 +3,7 @@
 import { useRef, useState, type ChangeEvent } from "react";
 import { ImageIcon, Upload, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { MAX_IMAGES } from "@/lib/validations/image";
 
 async function fileToCompressedDataUrl(file: File, maxDimension = 640, quality = 0.75) {
   const bitmap = await createImageBitmap(file);
@@ -107,7 +108,7 @@ export function ImageUpload({
 export function MultiImageUpload({
   name,
   defaultValue,
-  max = 5,
+  max = MAX_IMAGES,
 }: {
   name: string;
   defaultValue?: string[];

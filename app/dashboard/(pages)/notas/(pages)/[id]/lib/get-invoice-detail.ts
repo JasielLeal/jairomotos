@@ -10,6 +10,7 @@ export async function getInvoiceDetail(id: string) {
       createdBy: { select: { name: true } },
       items: { include: { product: { select: { name: true, unit: true, sku: true } } } },
       services: true,
+      boletos: { orderBy: { createdAt: "desc" } },
     },
   });
 

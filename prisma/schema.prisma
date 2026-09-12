@@ -14,6 +14,7 @@ enum Role {
 enum InvoiceStatus {
   PENDING
   APPROVED
+  PARTIAL
   CANCELED
 }
 
@@ -119,6 +120,7 @@ model Invoice {
   status        InvoiceStatus @default(PENDING)
   discountCents Int           @default(0)
   totalCents    Int           @default(0)
+  paidCents     Int           @default(0)
   notes         String?
   issuedAt      DateTime      @default(now())
   approvedAt    DateTime?
@@ -136,6 +138,7 @@ model Invoice {
   services              InvoiceService[]
   stockMovements        StockMovement[]
   financialTransactions FinancialTransaction[]
+  boletos               Boleto[]
 }
 
 model InvoiceItem {
@@ -201,11 +204,15 @@ model Boleto {
   financialTransactionId String?               @unique
   financialTransaction   FinancialTransaction? @relation(fields: [financialTransactionId], references: [id], onDelete: SetNull)
 
+  invoiceId String?
+  invoice   Invoice? @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
+
   createdById String
   createdBy   User   @relation("BoletoCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
 
   @@index([dueDate])
   @@index([status])
+  @@index([invoiceId])
 }
 
 model Motorcycle {

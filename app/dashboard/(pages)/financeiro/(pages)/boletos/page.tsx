@@ -6,9 +6,12 @@ import { verifySession } from "@/lib/dal";
 import { BoletoFilters } from "@/app/dashboard/(pages)/financeiro/(pages)/boletos/components/boleto-filters";
 import { BoletosTable } from "@/app/dashboard/(pages)/financeiro/(pages)/boletos/components/boletos-table";
 import { BoletosAlert } from "@/app/dashboard/(pages)/financeiro/(pages)/boletos/components/boletos-alert";
+import { BoletoStatusCard } from "@/app/dashboard/(pages)/financeiro/(pages)/boletos/components/boleto-status-card";
+import { BoletoStats } from "@/app/dashboard/(pages)/financeiro/(pages)/boletos/components/boleto-stats";
 import {
   getBoletos,
   getBoletoAlerts,
+  getBoletoStats,
   type BoletoStatusFilter,
 } from "@/app/dashboard/(pages)/financeiro/(pages)/boletos/lib/get-boletos";
 
@@ -27,9 +30,10 @@ export default async function BoletosPage({
     status === "PENDENTE" || status === "PAGO" || status === "CANCELADO" ? status : undefined;
   const page = Math.max(1, Number(pageParam) || 1);
 
-  const [{ boletos, totalPages }, alerts] = await Promise.all([
+  const [{ boletos, totalPages }, alerts, stats] = await Promise.all([
     getBoletos({ statusFilter, page }),
     getBoletoAlerts(),
+    getBoletoStats(),
   ]);
 
   return (
@@ -45,6 +49,10 @@ export default async function BoletosPage({
       />
 
       <BoletosAlert overdue={alerts.overdue} dueSoon={alerts.dueSoon} />
+
+      <BoletoStatusCard stats={stats} />
+
+      <BoletoStats stats={stats} />
 
       <BoletoFilters statusFilter={statusFilter} />
 

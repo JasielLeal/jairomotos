@@ -9,7 +9,7 @@ export default function ForgotPasswordPage() {
     <div className="dark flex min-h-screen items-center justify-center bg-background p-4 text-foreground">
       <div className="w-full max-w-sm rounded-[28px] bg-card p-8 text-center sm:p-10">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/logo.png" alt="Jairo Motos" className="mx-auto mb-8 h-14 w-auto" />
+        <img src="/logo.png" alt="Jairo Motos" className="mx-auto mb-8 h-14 w-auto max-w-none" />
 
         <div className="mx-auto mb-5 flex size-12 items-center justify-center rounded-full bg-primary/10 text-primary">
           <KeyRound className="size-5" />

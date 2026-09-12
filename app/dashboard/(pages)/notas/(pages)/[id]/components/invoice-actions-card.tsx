@@ -12,6 +12,8 @@ export function InvoiceActionsCard({
   invoice: NonNullable<Awaited<ReturnType<typeof getInvoiceDetail>>>["invoice"];
   whatsappLink: string | null;
 }) {
+  const remainderBoleto = invoice.boletos.find((b) => b.status === "PENDENTE");
+
   return (
     <Card>
       <CardHeader>
@@ -45,7 +47,7 @@ export function InvoiceActionsCard({
             Cliente sem telefone cadastrado.
           </p>
         )}
-        {invoice.status !== "CANCELED" && (
+        {invoice.status !== "CANCELED" && invoice.status !== "PARTIAL" && (
           <Button
             size="lg"
             variant="outline"
@@ -57,12 +59,23 @@ export function InvoiceActionsCard({
             Editar nota
           </Button>
         )}
-        <InvoiceActionsPanel invoiceId={invoice.id} status={invoice.status} />
+        <InvoiceActionsPanel
+          invoiceId={invoice.id}
+          status={invoice.status}
+          totalCents={invoice.totalCents}
+          remainderBoletoId={remainderBoleto?.id}
+          remainderAmountCents={remainderBoleto?.amountCents}
+        />
         <div className="flex flex-col gap-1 text-xs text-muted-foreground">
-          {invoice.approvedAt && <p>Aprovada em {formatDateTime(invoice.approvedAt)}</p>}
+          {invoice.approvedAt && invoice.status !== "PARTIAL" && (
+            <p>Aprovada em {formatDateTime(invoice.approvedAt)}</p>
+          )}
           {invoice.canceledAt && <p>Cancelada em {formatDateTime(invoice.canceledAt)}</p>}
-          {invoice.status === "PENDING" && (
-            <p>Ao aprovar, o estoque dos itens é baixado e a receita entra no financeiro.</p>
+          {invoice.status === "PARTIAL" && (
+            <p>
+              Entrada recebida em {invoice.approvedAt ? formatDateTime(invoice.approvedAt) : "—"}. Confirme
+              o pagamento do restante para fechar a nota.
+            </p>
           )}
         </div>
       </CardContent>

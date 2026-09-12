@@ -37,3 +37,18 @@ export type InvoiceFormState =
       message?: string;
     }
   | undefined;
+
+export const PartialPaymentSchema = z.object({
+  paidCents: z.coerce.number().int().min(1, { error: "Informe o valor da entrada." }),
+  remainingDueDate: z.string().trim().min(1, { error: "Informe a data para o restante." }),
+});
+
+export type PartialPaymentInput = z.infer<typeof PartialPaymentSchema>;
+
+export type PartialPaymentFormState =
+  | {
+      success?: boolean;
+      errors?: Record<string, string[]>;
+      message?: string;
+    }
+  | undefined;

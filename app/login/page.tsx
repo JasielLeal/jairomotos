@@ -8,7 +8,7 @@ export default function LoginPage() {
         <div className="hidden md:flex md:w-[44%] md:p-3">
           <div className="relative flex w-full flex-col items-start justify-between overflow-hidden rounded-3xl bg-linear-to-br from-neutral-900 via-neutral-950 to-red-950 p-8 xl:p-10">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo.png" alt="Jairo Motos" className="h-14 w-auto shrink-0" />
+            <img src="/logo.png" alt="Jairo Motos" className="h-14 w-auto max-w-none shrink-0" />
 
             <div className="max-w-sm">
               <h1 className="text-2xl font-bold leading-tight text-white text-balance xl:text-3xl">
@@ -28,7 +28,7 @@ export default function LoginPage() {
         <div className="flex flex-1 flex-col justify-center p-8 sm:p-10 md:p-12">
           <div className="mx-auto w-full max-w-sm">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo.png" alt="Jairo Motos" className="mx-auto mb-8 h-14 w-auto md:hidden" />
+            <img src="/logo.png" alt="Jairo Motos" className="mx-auto mb-8 h-14 w-auto max-w-none md:hidden" />
 
             <h2 className={`${displaySerif.className} text-3xl font-bold tracking-tight text-foreground`}>
               Bem-vindo de volta

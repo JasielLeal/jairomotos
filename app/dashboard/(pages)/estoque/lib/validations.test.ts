@@ -31,9 +31,17 @@ describe("ProductSchema", () => {
     expect(result.success).toBe(false);
   });
 
-  it("rejects an images entry that isn't a data: URI", () => {
+  it("rejects an images entry that isn't a data: URI or an https:// URL", () => {
     const result = ProductSchema.safeParse({ ...validProduct, images: ["not-an-image"] });
     expect(result.success).toBe(false);
+  });
+
+  it("accepts an already-uploaded Cloudinary URL alongside a new photo", () => {
+    const result = ProductSchema.safeParse({
+      ...validProduct,
+      images: ["https://res.cloudinary.com/demo/image/upload/v1/jairomotos/products/abc.webp", "data:image/webp;base64,xyz"],
+    });
+    expect(result.success).toBe(true);
   });
 
   it("rejects more than 5 photos", () => {

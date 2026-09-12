@@ -1,4 +1,5 @@
-import { formatCentsToBRL } from "@/lib/format";
+import Link from "next/link";
+import { formatCentsToBRL, formatDate } from "@/lib/format";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   Table,
@@ -17,6 +18,8 @@ export function InvoiceSummaryCard({
   invoice: NonNullable<Awaited<ReturnType<typeof getInvoiceDetail>>>["invoice"];
   subtotalCents: number;
 }) {
+  const remainderBoleto = invoice.boletos.find((b) => b.status !== "CANCELADO");
+
   return (
     <Card className="lg:col-span-2">
       <CardContent className="flex flex-col gap-6">
@@ -95,6 +98,29 @@ export function InvoiceSummaryCard({
               {formatCentsToBRL(invoice.totalCents)}
             </span>
           </div>
+
+          {invoice.status === "PARTIAL" && (
+            <>
+              <div className="flex items-center justify-between text-sm text-emerald-600 dark:text-emerald-400">
+                <span>Pago (entrada)</span>
+                <span className="font-medium tabular-nums">{formatCentsToBRL(invoice.paidCents)}</span>
+              </div>
+              {remainderBoleto && (
+                <div className="flex items-center justify-between text-sm text-amber-600 dark:text-amber-400">
+                  <span>Restante · vence em {formatDate(remainderBoleto.dueDate)}</span>
+                  <span className="font-medium tabular-nums">
+                    {formatCentsToBRL(remainderBoleto.amountCents)}
+                  </span>
+                </div>
+              )}
+              <Link
+                href="/dashboard/financeiro/boletos"
+                className="text-xs text-muted-foreground hover:underline"
+              >
+                ver na lista de boletos
+              </Link>
+            </>
+          )}
         </div>
 
         {invoice.notes && (

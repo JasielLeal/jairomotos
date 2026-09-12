@@ -1,4 +1,5 @@
 import * as z from "zod";
+import { imagesArraySchema } from "@/lib/validations/image";
 
 export const MotorcycleSchema = z.object({
   brand: z.string().min(2, { error: "Marca muito curta." }).trim(),
@@ -14,14 +15,7 @@ export const MotorcycleSchema = z.object({
   purchaseCostCents: z.coerce.number().int().min(0, { error: "Custo inválido." }),
   salePriceCents: z.coerce.number().int().min(1, { error: "Preço inválido." }),
   description: z.string().trim().optional(),
-  images: z
-    .array(z.string().trim())
-    .max(5, { error: "Máximo de 5 fotos." })
-    .refine((arr) => arr.every((v) => v.startsWith("data:image/")), {
-      error: "Uma das fotos é inválida.",
-    })
-    .optional()
-    .default([]),
+  images: imagesArraySchema().optional().default([]),
 });
 
 export type MotorcycleFormState =
@@ -35,13 +29,7 @@ export const SellMotorcycleSchema = z.object({
   soldPriceCents: z.coerce.number().int().min(1, { error: "Preço de venda inválido." }),
   buyerName: z.string().trim().min(2, { error: "Informe o nome do comprador." }),
   buyerPhone: z.string().trim().optional(),
-  saleProofImages: z
-    .array(z.string().trim())
-    .min(1, { error: "Anexe ao menos uma foto do comprovante de venda." })
-    .max(5, { error: "Máximo de 5 fotos." })
-    .refine((arr) => arr.every((v) => v.startsWith("data:image/")), {
-      error: "Uma das fotos é inválida.",
-    }),
+  saleProofImages: imagesArraySchema(1),
 });
 
 export const MotoTransactionEntrySchema = z.object({

@@ -152,10 +152,29 @@ async function main() {
   const COLORS = ["Preta", "Vermelha", "Azul", "Branca", "Prata", "Cinza"];
   const BUYER_NAMES = CUSTOMER_NAMES;
 
+  // Fictitious photos so the public showroom (and the "click to see details"
+  // gallery/thumbnails) has something to show during a client demo — real
+  // photos get uploaded to Cloudinary later through the normal moto forms.
+  function demoMotoImages(seed: string, count = 4) {
+    return Array.from(
+      { length: count },
+      (_, i) => `https://picsum.photos/seed/jairomotos-${seed}-${i}/900/675`
+    );
+  }
+
+  const MOTO_DESCRIPTIONS = [
+    "Moto revisada e pronta para uso, com documentação em dia. Aceita financiamento e troca.",
+    "Único dono, sempre revisada em concessionária. Pneus e freios em ótimo estado.",
+    "Bem conservada, sem detalhes de pintura. Ideal para o dia a dia e economia de combustível.",
+    "Revisão completa feita na loja: óleo, filtros e freios novos. Financiamos em até 48x.",
+    "Moto de garagem, pouco rodada. Aceita troca por moto de menor valor.",
+  ];
+
   let motoIndex = 0;
   for (const moto of MOTO_CATALOG) {
     const createdAt = randomDate(START_DATE, addDays(TODAY, -20));
     const outcome = motoIndex < 6 ? "SOLD" : motoIndex < 8 ? "RESERVED" : "AVAILABLE";
+    const seed = `${moto.brand}-${moto.model}-${moto.year}`.toLowerCase().replace(/\s+/g, "-");
     motoIndex++;
 
     const motoRecord = await prisma.motorcycle.create({
@@ -164,6 +183,8 @@ async function main() {
         model: moto.model,
         year: moto.year,
         color: randomChoice(COLORS),
+        images: demoMotoImages(seed),
+        description: randomChoice(MOTO_DESCRIPTIONS),
         mileage: randomInt(5000, 45000),
         purchaseCostCents: moto.purchase,
         salePriceCents: moto.sale,

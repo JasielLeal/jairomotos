@@ -1,16 +1,10 @@
 import * as z from "zod";
+import { imagesArraySchema } from "@/lib/validations/image";
 
 export const ProductSchema = z.object({
   name: z.string().min(2, { error: "Nome muito curto." }).trim(),
   shelf: z.string().trim().min(1, { error: "Informe a prateleira." }),
-  images: z
-    .array(z.string().trim())
-    .max(5, { error: "Máximo de 5 fotos." })
-    .refine((arr) => arr.every((v) => v.startsWith("data:image/")), {
-      error: "Uma das fotos é inválida.",
-    })
-    .optional()
-    .default([]),
+  images: imagesArraySchema().optional().default([]),
   costCents: z.coerce.number().int().min(0, { error: "Custo inválido." }),
   priceCents: z.coerce.number().int().min(1, { error: "Preço inválido." }),
   quantity: z.coerce.number().int().min(0, { error: "Quantidade inválida." }),

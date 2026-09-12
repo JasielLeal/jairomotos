@@ -6,6 +6,8 @@ import { formatCentsToBRL } from "@/lib/format";
 import { buildWhatsAppLink } from "@/lib/whatsapp";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { SiteHeader } from "@/app/components/site-header";
+import { SiteFooter } from "@/app/components/site-footer";
 
 export const metadata: Metadata = {
   title: "Jairo Motos — Motos seminovas à venda",
@@ -18,15 +20,7 @@ export default async function HomePage() {
 
   return (
     <div className="dark flex min-h-screen flex-col bg-background text-foreground">
-      <header className="border-b border-border">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4 sm:px-6">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logo.png" alt="Jairo Motos" className="h-10 w-auto" />
-          <Link href="/login" className="text-sm text-muted-foreground hover:text-foreground">
-            Área do funcionário
-          </Link>
-        </div>
-      </header>
+      <SiteHeader />
 
       <section className="relative overflow-hidden bg-linear-to-br from-neutral-900 via-neutral-950 to-red-950">
         <div className="mx-auto max-w-6xl px-4 py-16 text-center sm:px-6">
@@ -54,62 +48,66 @@ export default async function HomePage() {
               return (
                 <div
                   key={moto.id}
-                  className="flex flex-col overflow-hidden rounded-2xl border border-border bg-card"
+                  className="group flex flex-col overflow-hidden rounded-2xl border border-border bg-card transition-colors hover:border-primary/40"
                 >
-                  <div className="aspect-4/3 shrink-0 bg-muted">
-                    {moto.images[0] ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={moto.images[0]}
-                        alt={`${moto.brand} ${moto.model}`}
-                        className="size-full object-cover"
-                      />
-                    ) : (
-                      <div className="flex size-full items-center justify-center">
-                        <Bike className="size-12 text-muted-foreground/30" />
-                      </div>
-                    )}
-                  </div>
-                  <div className="flex flex-1 flex-col p-5">
-                    <h2 className="text-lg font-semibold text-foreground">
-                      {moto.brand} {moto.model}
-                    </h2>
-                    <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground">
-                      <span className="flex items-center gap-1">
-                        <Calendar className="size-3.5" /> {moto.year}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <Gauge className="size-3.5" /> {moto.mileage.toLocaleString("pt-BR")} km
-                      </span>
-                      {moto.color && (
-                        <span className="flex items-center gap-1">
-                          <Palette className="size-3.5" /> {moto.color}
-                        </span>
+                  <Link href={`/motos/${moto.id}`} className="flex flex-1 flex-col">
+                    <div className="aspect-4/3 shrink-0 overflow-hidden bg-muted">
+                      {moto.images[0] ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={moto.images[0]}
+                          alt={`${moto.brand} ${moto.model}`}
+                          className="size-full object-cover transition-transform duration-300 group-hover:scale-105"
+                        />
+                      ) : (
+                        <div className="flex size-full items-center justify-center">
+                          <Bike className="size-12 text-muted-foreground/30" />
+                        </div>
                       )}
                     </div>
+                    <div className="flex flex-1 flex-col p-5">
+                      <h2 className="text-lg font-semibold text-foreground group-hover:text-primary">
+                        {moto.brand} {moto.model}
+                      </h2>
+                      <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground">
+                        <span className="flex items-center gap-1">
+                          <Calendar className="size-3.5" /> {moto.year}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Gauge className="size-3.5" /> {moto.mileage.toLocaleString("pt-BR")} km
+                        </span>
+                        {moto.color && (
+                          <span className="flex items-center gap-1">
+                            <Palette className="size-3.5" /> {moto.color}
+                          </span>
+                        )}
+                      </div>
 
-                    {moto.description && (
-                      <p className="mt-3 line-clamp-2 text-sm text-muted-foreground">
-                        {moto.description}
+                      {moto.description && (
+                        <p className="mt-3 line-clamp-2 text-sm text-muted-foreground">
+                          {moto.description}
+                        </p>
+                      )}
+
+                      <p className="mt-4 text-2xl font-bold text-primary">
+                        {formatCentsToBRL(moto.salePriceCents)}
                       </p>
-                    )}
+                    </div>
+                  </Link>
 
-                    <p className="mt-4 text-2xl font-bold text-primary">
-                      {formatCentsToBRL(moto.salePriceCents)}
-                    </p>
-
-                    {whatsappLink && (
+                  {whatsappLink && (
+                    <div className="px-5 pb-5">
                       <a
                         href={whatsappLink}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className={cn(buttonVariants({ size: "lg" }), "mt-4 w-full")}
+                        className={cn(buttonVariants({ size: "lg" }), "w-full")}
                       >
                         <MessageCircle className="size-4" />
                         Tenho interesse
                       </a>
-                    )}
-                  </div>
+                    </div>
+                  )}
                 </div>
               );
             })}
@@ -117,9 +115,7 @@ export default async function HomePage() {
         )}
       </main>
 
-      <footer className="border-t border-border py-6 text-center text-xs text-muted-foreground">
-        © {new Date().getFullYear()} Jairo Motos. Todos os direitos reservados.
-      </footer>
+      <SiteFooter />
     </div>
   );
 }

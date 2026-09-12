@@ -7,3 +7,9 @@ export function getAvailableMotorcycles() {
     orderBy: { createdAt: "desc" },
   });
 }
+
+export function getAvailableMotorcycleById(id: string) {
+  return db.motorcycle.findFirst({
+    where: { id, status: "AVAILABLE" },
+  });
+}
